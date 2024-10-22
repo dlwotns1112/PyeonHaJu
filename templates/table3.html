@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DataFrame Table</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="mb-4">DataFrame Table</h1>
+    {% if step == 'post' %}
+        <form method="POST" action="{% url 'update_dataframe' %}">
+            {% csrf_token %}
+            <table class="table table-bordered">
+                <thead class="thead-dark">
+                <tr>
+                    {% for column in columns %}
+                        <th>{{ column }}</th>
+                    {% endfor %}
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in data %}
+                    <tr>
+                        {% for item in row %}
+                            {% if forloop.counter0 == 1 %}
+                                <td><textarea name="data[]" class="form-control" rows="3" readonly tabindex="-1">{{ item }}</textarea></td>
+                            {% elif forloop.counter0 == 3 %}
+                                <td><input type="text" name="data[]" value="{{ item }}" class="form-control" /></td>
+                            {% else %}
+                                <td><input type="text" name="data[]" value="{{ item }}" class="form-control" readonly tabindex="-1" /></td>
+                            {% endif %}
+                        {% endfor %}
+                        <td>
+                            <button type="button" class="btn btn-primary get-data-btn">Get Data</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <input type="hidden" name="column_count" value="{{ column_count }}" />
+            {% for column in columns %}
+                <input type="hidden" name="columns[]" value="{{ column }}" />
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+    {% endif %}
+    {% if step == 'comment' %}
+        <form method="POST" action="{% url 'update_comments' %}">
+            {% csrf_token %}
+            <table class="table table-bordered">
+                <thead class="thead-dark">
+                <tr>
+                    {% for column in columns %}
+                        <th>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in data %}
+                    <tr>
+                        {% for item in row %}
+                            {% if column == 'content' %}
+                                <td><textarea name="data[]" class="form-control" rows="3">{{ item }}</textarea></td>
+                            {% else %}
+                                <td><input type="text" name="data[]" value="{{ item }}" class="form-control" /></td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+    {% endif %}
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    document.querySelectorAll('.get-data-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const row = button.closest('tr');
+            const firstItem = row.querySelector('input[name="data[]"], textarea[name="data[]"]').value;
+
+            const url = new URL("{% url 'comment_view' %}", window.location.origin);
+            url.searchParams.append('row_data[]', firstItem);
+
+            window.location.href = url;
+        });
+    });
+</script>
+</body>
+</html>

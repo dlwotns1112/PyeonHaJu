@@ -1,0 +1,16 @@
+<!-- templates/table.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DataFrame Table</title>
+</head>
+<body>
+<h1>DataFrame Table</h1>
+<form method="POST" action="{% url 'search_data' %}">  <!-- Form submission to update view -->
+    {% csrf_token %}
+    <input type="text" name="keyword" value="" /> <!-- Form input for each item -->
+    <button type="submit">Search</button>
+</form>
+</body>
+</html>
