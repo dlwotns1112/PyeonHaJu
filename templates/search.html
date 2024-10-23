@@ -1,16 +1,48 @@
 <!-- templates/table.html -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>DataFrame Table</title>
+    <style>
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
 <h1>DataFrame Table</h1>
-<form method="POST" action="{% url 'search_data' %}">  <!-- Form submission to update view -->
+<form id="search-form" method="POST" action="{% url 'search_data' %}">
     {% csrf_token %}
-    <input type="text" name="keyword" value="" /> <!-- Form input for each item -->
-    <button type="submit">Search</button>
+    <input type="text" name="keyword" class="form-control" placeholder="Search...">
+    <button id="search-button" type="submit" class="btn btn-primary mt-2">Search</button>
+    <div id="loader" class="loading hidden"></div> <!-- 로딩 아이콘 -->
 </form>
 </body>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchButton = document.getElementById('search-button');
+        const searchForm = document.getElementById('search-form');
+        const loader = document.getElementById('loader');
+
+        searchForm.addEventListener('submit', function () {
+            searchButton.classList.add('hidden'); // 버튼 숨기기
+            loader.classList.remove('hidden'); // 로딩 아이콘 보이기
+        });
+    });
+</script>
 </html>

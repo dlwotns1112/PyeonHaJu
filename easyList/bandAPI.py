@@ -3,7 +3,16 @@ import pandas as pd
 from .models import *
 from .db_utils import DatabaseManager
 import json
-with open('config.json') as config_file:
+import os
+
+# 현재 파일의 디렉토리 경로를 가져옵니다.
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# config.json 파일의 절대 경로를 생성합니다.
+config_path = os.path.join(current_dir, 'config.json')
+
+# config.json 파일을 엽니다.
+with open(config_path) as config_file:
     config = json.load(config_file)
 
 access_token = config['ACCESS_TOKEN']
