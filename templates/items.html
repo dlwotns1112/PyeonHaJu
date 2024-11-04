@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block sidebar %}
+    {% include 'sidebar.html' %}
+{% endblock %}
+{% block top-bar %}
+{% endblock %}
+{% block content %}
+    <div class='ml-3 mt-5'>
+        <div class='row'>
+            <div class='col-6'>
+                <h1>물품 관리</h1>
+            </div>
+            <div class='col-6'>
+                <button class="btn btn-primary float-right" data-toggle="modal" data-target="#addItemModal">물품 등록</button>
+            </div>
+        </div>
+        <table id="dataTable" class="table table-bordered">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Batch</th>
+                <th>Pick Date</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in items %}
+                <tr data-id="{{ item.id }}">
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.price }}</td>
+                    <td>{{ item.batch }}</td>
+                    <td>{{ item.pick_date }}</td>
+                    <td>
+                        <button class="btn btn-danger delete-row-btn">삭제</button>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div class="modal fade" id="addItemModal" tabindex="-1" aria-labelledby="addItemModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addItemModalLabel">물품 등록</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addItemForm">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="name">품명</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="price">가격</label>
+                            <input type="number" class="form-control" id="price" name="price" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="batch">단위</label>
+                            <input type="text" class="form-control" id="batch" name="batch" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pick_date">픽업일(ex:20241112)</label>
+                            <input type="number" class="form-control" id="pick_date" name="pick_date" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Item</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var delete_list = [];
+
+            // DataTables 초기화
+            var table = $('#dataTable').DataTable({
+                "lengthMenu": [25, 50, 75, 100]
+            });
+
+            // Delete 버튼 클릭 이벤트 리스너 추가
+            $('#dataTable').on('click', '.delete-row-btn', function() {
+                var row = $(this).closest('tr');
+                var itemId = row.data('id');
+
+                if (confirm('삭제하시겠습니까?')) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url "delete_item" item_id=0 %}'.replace('0', itemId),
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                delete_list.push(itemId);
+                                table.row(row).remove().draw();
+                                console.log('Deleted IDs:', delete_list);
+                            } else {
+                                alert('Failed to delete item');
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Add Item Form 제출 처리
+            $('#addItemForm').on('submit', function(e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "add_item" %}',
+                    data: formData,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // DataTable에 새로운 데이터 추가
+                            table.row.add([
+                                response.id,
+                                response.name,
+                                response.price,
+                                response.batch,
+                                response.pick_date,
+                                '<button class="btn btn-danger delete-row-btn">Delete</button>'
+                            ]).draw().node().dataset.id = response.id;
+
+                            // 모달 닫기
+                            $('#addItemModal').modal('hide');
+                            $('.modal-backdrop').remove();
+                            // 폼 초기화
+                            $('#addItemForm')[0].reset();
+                        } else {
+                            alert('Failed to add item');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}
