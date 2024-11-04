@@ -1,10 +1,16 @@
 import pandas as pd
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .utils import *  # 데이터프레임을 가져오는 함수
 from .db_utils import DatabaseManager
+from .forms import *
+from django.http import JsonResponse
 import json
 
 db_manager = DatabaseManager()
+
+
+def main_view(request):
+    return render(request, 'main.html')
 
 
 def table_view(request):
@@ -118,3 +124,29 @@ def comment_view(request):
     # print(new_df)
     return render(request, 'table.html',
                   {'columns': columns, 'data': data, 'step': 'comment', 'column_count': column_count})
+
+
+def item_list(request):
+    items = db_manager.get_items()
+    return render(request, 'items.html', {'items': items})
+
+def add_item(request):
+    if request.method == 'POST':
+        form = ItemForm(request.POST)
+        if form.is_valid():
+            item = form.save()
+            return JsonResponse({
+                'success': True,
+                'id': item.id,
+                'name': item.name,
+                'price': item.price,
+                'batch': item.batch,
+                'pick_date': item.pick_date,
+            })
+    return JsonResponse({'success': False})
+
+def delete_item(request, item_id):
+    item = get_object_or_404(Item, id=item_id)
+    item.is_end = True
+    item.save()
+    return JsonResponse({'success': True})

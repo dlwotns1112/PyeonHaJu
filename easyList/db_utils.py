@@ -8,9 +8,8 @@ class DatabaseManager:
         all_posts = Post.objects.all()
         posts = [{
             'post_key': post.post_key,
-            'pick_date': post.pick_date,
-            'item_type_count': post.item_type_count,
-            'item_name': post.item_name,
+            'content': post.content,
+            'comment_count': post.comment_count,
             'user_key': post.user.user_key  # 외래 키 필드
         } for post in all_posts]
 
@@ -62,3 +61,12 @@ class DatabaseManager:
         user_objects = [User(**user) for user in user_list]
         User.objects.bulk_create(user_objects)
         return
+
+
+    def get_items(self):
+        items = Item.objects.filter(is_end=False)
+        return items
+
+
+    # def end_item(self, item_id):
+    #     item = get_object_or_404(Item, id=item_id)
